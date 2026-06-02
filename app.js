@@ -4,14 +4,13 @@
  */
 
 import { storage }          from './js/storage.js';
-import { loadSettings, saveSettings, getSettings, saveToken, loadToken, clearToken, applyTheme, toggleTokenVisibility as _toggleVis } from './js/settings.js';
+import { loadSettings, saveSettings, getSettings, applyTheme } from './js/settings.js'; // FIXED: removed Gist token helpers (unused after Firebase)
 import { addAccount, updateAccount, deleteAccount, duplicateAccount, recordUsage, filterAccounts, computeStats, getAllProviders, buildAccount } from './js/accounts.js';
-import { pushToGist, pullFromGist as _pull, syncGist as _sync, testConnection } from './js/sync.js';
 import { getAccountUrl, buildCommand, openDirect, copyToClipboard, getOpenOptions } from './js/browserLauncher.js';
 import { requestNotificationPermission, pickRotationAccount } from './js/rateLimit.js';
-import { toast, openOverlay, closeOverlay, renderStats, renderAIChips, renderCards, renderBulkBar, showSkeleton, setSyncing, setToggle, closeAllOverlays } from './js/ui.js';
+import { toast, openOverlay, closeOverlay, renderStats, renderAIChips, renderCards, renderBulkBar, showSkeleton, setToggle } from './js/ui.js'; // FIXED: remove legacy sync helpers
 import { val, setVal, debounce, sanitize, parseTags, logger } from './js/utils.js';
-import { STATUS, THEME, OPEN_MODE, TAGS_PRESET, SYNC_INTERVAL } from './js/constants.js';
+import { STATUS, THEME, OPEN_MODE, TAGS_PRESET } from './js/constants.js'; // FIXED: remove SYNC_INTERVAL (Gist auto-sync removed)
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -22,8 +21,6 @@ let _deleteId   = null;
 let _openId     = null;
 let _activeAI   = '';
 let _selected   = new Set();
-let _syncTimer  = null;
-let _conflictData = null;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
@@ -37,24 +34,37 @@ async function init() {
   setToggle('settingsAlwaysAsk',  s.alwaysAsk);
 
   // Storage (async)
-  const { migrated } = await storage.init();
-  if (migrated) toast(`Đã chuyển ${migrated} tài khoản sang IndexedDB`, 'info');
+  try {
+    await storage.init(); // FIXED: Firebase init (no local migration)
+  } catch (e) {
+    toast(e.message, 'err'); // FIXED: surface missing Firebase config / auth issues
+  }
 
-  // Providers
-  _providers = await getAllProviders();
-
-  // Accounts
-  await refreshAccounts();
+  storage.onUserChanged(async (u) => { // FIXED: react to auth changes
+    setAuthUI(u);
+    if (u) {
+      _providers = await getAllProviders();
+      await refreshAccounts();
+    } else {
+      _providers = await getAllProviders();
+    }
+  });
+  setAuthUI(storage.getUser());
 
   // Notifications
   await requestNotificationPermission();
 
-  // Auto sync
-  if (s.autoSync) startAutoSync();
-
   // Overlay click-outside
   document.querySelectorAll('.overlay').forEach(ov => {
     ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
+  });
+
+  // Close buttons (data-close) // FIXED: wire all [data-close] buttons to closeOverlay
+  document.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-close');
+      closeOverlay(id);
+    });
   });
 
   // PWA install prompt
@@ -67,11 +77,24 @@ async function init() {
   logger.info('AI Account Hub v2 initialised');
 }
 
+function setAuthUI(user) { // FIXED: simple login UI
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const userLabel = document.getElementById('userLabel');
+  if (loginBtn) loginBtn.classList.toggle('hidden', !!user);
+  if (logoutBtn) logoutBtn.classList.toggle('hidden', !user);
+  if (userLabel) userLabel.textContent = user ? (user.displayName || user.email || 'Đã đăng nhập') : 'Chưa đăng nhập';
+}
+
 // ── Data refresh ──────────────────────────────────────────────────────────────
 
 async function refreshAccounts() {
-  _accounts = await storage.accounts.list();
-  renderView();
+  try { // FIXED: require auth
+    _accounts = await storage.accounts.list();
+    renderView();
+  } catch (e) {
+    toast(e.message, 'warn');
+  }
 }
 
 function renderView() {
@@ -327,19 +350,11 @@ async function openSettings() {
   const s = getSettings();
   setVal('sChromePath',    s.chromePath ?? '');
   setVal('sChromePathWin', s.chromePathWin ?? '');
-  setVal('sGistId',        s.gistId ?? '');
   setVal('defaultOpenMode', s.defaultOpenMode ?? OPEN_MODE.DIRECT);
   setToggle('settingsAlwaysAsk', s.alwaysAsk);
 
   // Theme radio
   document.querySelectorAll('input[name="themeRadio"]').forEach(r => { r.checked = r.value === (s.theme ?? THEME.SYSTEM); });
-
-  // Load encrypted token
-  const token = await loadToken();
-  setVal('sGistToken', token ? '••••••••••••••••' : '');
-
-  const lastSync = document.getElementById('lastSyncLabel');
-  if (lastSync) lastSync.textContent = s.lastSyncAt ? `Lần cuối: ${new Date(s.lastSyncAt).toLocaleString('vi-VN')}` : 'Chưa đồng bộ';
 
   openOverlay('settingsOverlay');
 }
@@ -347,35 +362,14 @@ async function openSettings() {
 async function saveSettings_() {
   const chromePath    = val('sChromePath');
   const chromePathWin = val('sChromePathWin');
-  const gistId        = val('sGistId');
   const mode          = val('defaultOpenMode');
   const theme         = document.querySelector('input[name="themeRadio"]:checked')?.value ?? THEME.SYSTEM;
-  const tokenInput    = val('sGistToken');
 
-  saveSettings({ chromePath, chromePathWin, gistId, defaultOpenMode: mode, theme });
+  saveSettings({ chromePath, chromePathWin, defaultOpenMode: mode, theme }); // FIXED: removed gist settings
   applyTheme(theme);
-
-  // Only update token if user typed something new (not the masked placeholder)
-  if (tokenInput && !tokenInput.startsWith('•')) {
-    try { await saveToken(tokenInput); } catch (e) { toast(e.message, 'err'); return; }
-  }
-  if (!tokenInput) clearToken();
 
   closeOverlay('settingsOverlay');
   toast('Đã lưu cài đặt', 'ok');
-}
-
-function toggleTokenVisibility() {
-  const inp = document.getElementById('sGistToken');
-  const ico = document.getElementById('tokenEyeIcon');
-  if (!inp) return;
-  if (inp.type === 'password') {
-    inp.type = 'text';
-    if (ico) { ico.classList.remove('ti-eye'); ico.classList.add('ti-eye-off'); }
-  } else {
-    inp.type = 'password';
-    if (ico) { ico.classList.remove('ti-eye-off'); ico.classList.add('ti-eye'); }
-  }
 }
 
 function toggleAlwaysAsk() {
@@ -397,69 +391,27 @@ function saveDefaultMode() {
   saveSettings({ defaultOpenMode: val('defaultOpenMode') });
 }
 
-// ── Gist sync ─────────────────────────────────────────────────────────────────
+// ── Auth (Google) ─────────────────────────────────────────────────────────────
 
-async function syncGist() {
-  setSyncing(true);
-  const result = await _sync();
-  setSyncing(false);
-  if (result.conflict) {
-    _conflictData = result.remote;
-    toast('Xung đột! Xem chi tiết trong Cài đặt → Đồng bộ', 'warn');
-    return;
-  }
-  toast(result.message, result.ok ? 'ok' : 'err');
-  if (result.ok) await refreshAccounts();
-}
-
-async function pushToGist_() {
-  setSyncing(true);
-  const r = await pushToGist();
-  setSyncing(false);
-  toast(r.message, r.ok ? 'ok' : 'err');
-}
-
-async function pullFromGist() {
-  setSyncing(true);
-  const r = await _pull();
-  setSyncing(false);
-  if (r.conflict) {
-    _conflictData = r.remote;
-    const gistStatus = document.getElementById('gistStatus');
-    if (gistStatus) {
-      gistStatus.className = 'gist-status err';
-      gistStatus.textContent = r.message + ' Nhấn "Ghi đè local" để chấp nhận.';
-    }
-    return;
-  }
-  toast(r.message, r.ok ? 'ok' : 'err');
-  if (r.ok) { await refreshAccounts(); closeOverlay('settingsOverlay'); }
-  else {
-    const gs = document.getElementById('gistStatus');
-    if (gs) { gs.className = 'gist-status err'; gs.textContent = r.message; }
+async function signIn() { // FIXED: Google login via Firebase
+  try {
+    await storage.signIn();
+    toast('Đăng nhập thành công', 'ok');
+    await refreshAccounts();
+  } catch (e) {
+    toast(e.message, 'err');
   }
 }
 
-async function forceOverwriteLocal() {
-  if (!_conflictData) return;
-  const r = await _pull({ force: true });
-  _conflictData = null;
-  toast(r.message, r.ok ? 'ok' : 'err');
-  if (r.ok) { await refreshAccounts(); closeOverlay('settingsOverlay'); }
-}
-
-async function testGistConnection() {
-  const r  = await testConnection();
-  const gs = document.getElementById('gistStatus');
-  if (gs) {
-    gs.className = `gist-status ${r.ok ? 'ok' : 'err'}`;
-    gs.textContent = r.message;
+async function signOut() { // FIXED: logout
+  try {
+    await storage.signOut();
+    _accounts = [];
+    renderView();
+    toast('Đã đăng xuất', 'info');
+  } catch (e) {
+    toast(e.message, 'err');
   }
-}
-
-function startAutoSync() {
-  if (_syncTimer) clearInterval(_syncTimer);
-  _syncTimer = setInterval(syncGist, SYNC_INTERVAL);
 }
 
 // ── Cmd modal helpers ─────────────────────────────────────────────────────────
@@ -543,6 +495,8 @@ window.App = {
   init,
   // Render
   render: debounce(renderView, 200),
+  // Auth
+  signIn, signOut,
   // Account CRUD
   openAdd, openEdit, saveAccount, closeForm,
   confirmDelete, doDelete, doDuplicate,
@@ -552,10 +506,8 @@ window.App = {
   applyBulkStatus, applyBulkTag,
   // Settings
   openSettings, saveSettings: saveSettings_,
-  toggleAlwaysAsk, toggleSettingsAlwaysAsk, toggleTokenVisibility,
+  toggleAlwaysAsk, toggleSettingsAlwaysAsk,
   saveDefaultMode,
-  // Sync
-  syncGist, pushToGist: pushToGist_, pullFromGist, forceOverwriteLocal, testGistConnection,
   // Data
   exportData, importData, handleImport, clearAllData,
   // PWA

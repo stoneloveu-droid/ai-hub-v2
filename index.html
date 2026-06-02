@@ -20,9 +20,9 @@
 <!-- Install banner -->
 <div class="install-banner hidden" id="installBanner">
   <i class="ti ti-device-mobile"></i>
-  <span>Cai dat AI Hub nhu mot ung dung?</span>
-  <button class="btn btn-sm btn-primary" id="installBtn">Cai dat</button>
-  <button class="btn btn-sm btn-icon" id="installDismiss"><i class="ti ti-x"></i></button>
+  <span><!-- FIXED: restore Vietnamese -->Cài đặt AI Hub như một ứng dụng?</span>
+  <button class="btn btn-sm btn-primary" id="installBtn" onclick="App.installApp()"><!-- FIXED: onclick + Vietnamese -->Cài đặt</button>
+  <button class="btn btn-sm btn-icon" id="installDismiss" onclick="document.getElementById('installBanner').classList.add('hidden')"><!-- FIXED: onclick --><i class="ti ti-x"></i></button>
 </div>
 
 <div id="app">
@@ -31,11 +31,13 @@
     <div class="logo-icon"><i class="ti ti-robot"></i></div>
     <div>
       <div class="logo-text">AI Account Hub</div>
-      <div class="logo-sub">Quan ly tai khoan AI</div>
+      <div class="logo-sub"><!-- FIXED: restore Vietnamese -->Quản lý tài khoản AI</div>
     </div>
     <div class="topbar-actions">
-      <button class="btn btn-icon" id="syncBtn" title="Dong bo GitHub Gist"><i class="ti ti-cloud-upload"></i></button>
-      <button class="btn btn-icon" id="settingsBtn" title="Cai dat"><i class="ti ti-settings"></i></button>
+      <span id="userLabel" style="font-size:12px;color:var(--text2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><!-- FIXED: auth label -->Chưa đăng nhập</span>
+      <button class="btn btn-icon" id="loginBtn" title="Đăng nhập Google" onclick="App.signIn()"><!-- FIXED: Google login --><i class="ti ti-brand-google"></i></button>
+      <button class="btn btn-icon hidden" id="logoutBtn" title="Đăng xuất" onclick="App.signOut()"><!-- FIXED: logout --><i class="ti ti-logout"></i></button>
+      <button class="btn btn-icon" id="settingsBtn" title="Cài đặt" onclick="App.openSettings()"><!-- FIXED: onclick + Vietnamese --><i class="ti ti-settings"></i></button>
     </div>
   </div>
 
@@ -46,42 +48,42 @@
   <div class="filter-bar">
     <div class="search-wrap">
       <i class="ti ti-search"></i>
-      <input type="text" id="searchInput" placeholder="Tim ten, email, tag, ghi chu..." />
+      <input type="text" id="searchInput" placeholder="Tìm tên, email, tag, ghi chú..." oninput="App.render()" /><!-- FIXED: Vietnamese + oninput -->
     </div>
     <div class="filter-chips" id="aiChips"></div>
     <div class="filter-row">
-      <select class="filter-sel" id="filterStatus">
-        <option value="">Tat ca trang thai</option>
+      <select class="filter-sel" id="filterStatus" onchange="App.render()"><!-- FIXED: onchange -->
+        <option value=""><!-- FIXED: Vietnamese -->Tất cả trạng thái</option>
         <option value="active">Active</option>
         <option value="limited">Rate Limited</option>
-        <option value="expired">Het han</option>
+        <option value="expired"><!-- FIXED: Vietnamese -->Hết hạn</option>
         <option value="banned">Banned</option>
       </select>
-      <select class="filter-sel" id="filterTag">
-        <option value="">Tat ca tag</option>
+      <select class="filter-sel" id="filterTag" onchange="App.render()"><!-- FIXED: onchange -->
+        <option value=""><!-- FIXED: Vietnamese -->Tất cả tag</option>
         <option>Coding</option><option>Writing</option><option>Research</option>
         <option>Translation</option><option>Creative</option><option>Analysis</option>
         <option>Image Gen</option><option>Backup</option>
       </select>
-      <select class="filter-sel" id="sortSelect" style="max-width:130px">
-        <option value="pinned">Ghim truoc</option>
-        <option value="lastUsed">Gan dung nhat</option>
-        <option value="usage">Dung nhieu nhat</option>
-        <option value="name">Ten A-Z</option>
-        <option value="ai">Loai AI</option>
-        <option value="status">Trang thai</option>
-        <option value="oldest">Cu nhat</option>
+      <select class="filter-sel" id="sortSelect" style="max-width:130px" onchange="App.render()"><!-- FIXED: onchange -->
+        <option value="pinned"><!-- FIXED: Vietnamese -->Ghim trước</option>
+        <option value="lastUsed"><!-- FIXED: Vietnamese -->Gần dùng nhất</option>
+        <option value="usage"><!-- FIXED: Vietnamese -->Dùng nhiều nhất</option>
+        <option value="name"><!-- FIXED: Vietnamese -->Tên A-Z</option>
+        <option value="ai"><!-- FIXED: Vietnamese -->Loại AI</option>
+        <option value="status"><!-- FIXED: Vietnamese -->Trạng thái</option>
+        <option value="oldest"><!-- FIXED: Vietnamese -->Cũ nhất</option>
       </select>
     </div>
     <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;padding-left:2px;">
-      <input type="checkbox" id="showArchived" /> Hien tai khoan da archive
+      <input type="checkbox" id="showArchived" onchange="App.render()" /><!-- FIXED: onchange --> Hiện tài khoản đã archive<!-- FIXED: Vietnamese -->
     </label>
   </div>
 
   <div class="result-label" id="resultLabel"></div>
   <div class="cards-list" id="cardsList"></div>
   <div class="toaster" id="toaster"></div>
-  <button class="fab" id="fabAdd"><i class="ti ti-plus"></i> Them tai khoan</button>
+  <button class="fab" id="fabAdd" onclick="App.openAdd()"><!-- FIXED: onclick + Vietnamese --><i class="ti ti-plus"></i> Thêm tài khoản</button>
 </div>
 
 
@@ -95,8 +97,8 @@
     </div>
     <div class="sheet-body">
       <div class="frow">
-        <div class="fgroup"><label>Ten tai khoan *</label><input id="fName" type="text" placeholder="VD: Claude - Work" /></div>
-        <div class="fgroup"><label>Loai AI *</label>
+        <div class="fgroup"><label><!-- FIXED: Vietnamese -->Tên tài khoản *</label><input id="fName" type="text" placeholder="VD: Claude - Work" /></div>
+        <div class="fgroup"><label><!-- FIXED: Vietnamese -->Loại AI *</label>
           <select id="fAI">
             <option>ChatGPT</option><option>Claude</option><option>Gemini</option>
             <option>Grok</option><option>Perplexity</option><option>DeepSeek</option>
@@ -106,31 +108,31 @@
       </div>
       <div class="fgroup"><label>Email / Username</label><input id="fEmail" type="email" placeholder="email@example.com" /></div>
       <div class="frow">
-        <div class="fgroup"><label>Trang thai</label>
+        <div class="fgroup"><label><!-- FIXED: Vietnamese -->Trạng thái</label>
           <select id="fStatus">
             <option value="active">Active</option><option value="limited">Rate Limited</option>
-            <option value="expired">Het han</option><option value="banned">Banned</option>
+            <option value="expired"><!-- FIXED: Vietnamese -->Hết hạn</option><option value="banned">Banned</option>
           </select>
         </div>
-        <div class="fgroup"><label>Tags (cach boi dau phay)</label><input id="fTags" type="text" placeholder="Coding, Research" /></div>
+        <div class="fgroup"><label><!-- FIXED: Vietnamese -->Tags (cách bởi dấu phẩy)</label><input id="fTags" type="text" placeholder="Coding, Research" /></div>
       </div>
-      <div class="fgroup"><label>URL tuy chinh (de trong = mac dinh)</label><input id="fUrl" type="url" placeholder="https://..." /></div>
+      <div class="fgroup"><label><!-- FIXED: Vietnamese -->URL tuỳ chỉnh (để trống = mặc định)</label><input id="fUrl" type="url" placeholder="https://..." /></div>
       <div class="chrome-box">
-        <div class="chrome-box-title"><i class="ti ti-browser"></i> Trinh duyet &amp; Profile</div>
+        <div class="chrome-box-title"><i class="ti ti-browser"></i> <!-- FIXED: Vietnamese -->Trình duyệt &amp; Profile</div>
         <div class="frow">
-          <div class="fgroup"><label>Trinh duyet</label>
+          <div class="fgroup"><label><!-- FIXED: Vietnamese -->Trình duyệt</label>
             <select id="fBrowser"><option value="chrome">Chrome</option><option value="edge">Edge</option><option value="brave">Brave</option><option value="firefox">Firefox</option></select>
           </div>
           <div class="fgroup"><label>Profile directory</label><input id="fProfile" type="text" placeholder='"Profile 3" hoac "Default"' /></div>
         </div>
-        <div class="fgroup"><label>Duong dan trinh duyet (tuy chinh)</label><input id="fChromePath" type="text" placeholder="/usr/bin/google-chrome" /></div>
+        <div class="fgroup"><label><!-- FIXED: Vietnamese -->Đường dẫn trình duyệt (tuỳ chỉnh)</label><input id="fChromePath" type="text" placeholder="/usr/bin/google-chrome" /></div>
         <div class="chrome-hint"><i class="ti ti-info-circle"></i> Chrome/Edge: <code>about:version</code> - Profile Path | Firefox: <code>about:profiles</code></div>
       </div>
-      <div class="fgroup"><label>Ghi chu</label><textarea id="fNote" placeholder="Ghi chu ve tai khoan nay..."></textarea></div>
+      <div class="fgroup"><label><!-- FIXED: Vietnamese -->Ghi chú</label><textarea id="fNote" placeholder="Ghi chú về tài khoản này..."></textarea></div>
     </div>
     <div class="sheet-footer">
-      <button class="btn" data-close="formOverlay">Huy</button>
-      <button class="btn btn-primary" id="saveAccountBtn"><i class="ti ti-check"></i> Luu</button>
+      <button class="btn" data-close="formOverlay"><!-- FIXED: Vietnamese -->Huỷ</button>
+      <button class="btn btn-primary" id="saveAccountBtn" onclick="App.saveAccount()"><!-- FIXED: onclick + Vietnamese --><i class="ti ti-check"></i> Lưu</button>
     </div>
   </div></div>
 </div>
@@ -141,14 +143,14 @@
   <div class="sheet-wrap"><div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <div><h2 id="openTitle">Mo chat</h2><div class="open-sub" id="openSub"></div></div>
+      <div><h2 id="openTitle"><!-- FIXED: Vietnamese -->Mở chat</h2><div class="open-sub" id="openSub"></div></div>
       <button class="btn btn-icon" data-close="openOverlay"><i class="ti ti-x"></i></button>
     </div>
     <div class="sheet-body">
       <div class="option-list" id="openOptionList"></div>
       <div class="always-ask-row">
-        <div><div>Luon hoi cach mo</div><div class="pref-sub">Tat = dung phuong thuc mac dinh</div></div>
-        <button class="toggle" id="alwaysAskToggle"></button>
+        <div><div><!-- FIXED: Vietnamese -->Luôn hỏi cách mở</div><div class="pref-sub"><!-- FIXED: Vietnamese -->Tắt = dùng phương thức mặc định</div></div>
+        <button class="toggle" id="alwaysAskToggle" onclick="App.toggleAlwaysAsk()"><!-- FIXED: onclick --></button>
       </div>
     </div>
   </div></div>
@@ -160,25 +162,25 @@
   <div class="sheet-wrap"><div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <h2><i class="ti ti-terminal"></i> Lenh mo trinh duyet</h2>
+      <h2><i class="ti ti-terminal"></i> <!-- FIXED: Vietnamese -->Lệnh mở trình duyệt</h2>
       <button class="btn btn-icon" data-close="cmdOverlay"><i class="ti ti-x"></i></button>
     </div>
     <div class="sheet-body">
       <div class="cmd-note" id="cmdInfo"></div>
       <div class="cmd-os-label">Linux / macOS</div>
       <div class="cmd-box">
-        <button class="cmd-copy-btn" id="copyLinuxBtn"><i class="ti ti-copy"></i> Copy</button>
+        <button class="cmd-copy-btn" id="copyLinuxBtn" onclick="App.copyCmd('cmdLinuxText')"><!-- FIXED: onclick --><i class="ti ti-copy"></i> Copy</button>
         <code id="cmdLinuxText"></code>
       </div>
       <div class="cmd-os-label">Windows</div>
       <div class="cmd-box">
-        <button class="cmd-copy-btn" id="copyWinBtn"><i class="ti ti-copy"></i> Copy</button>
+        <button class="cmd-copy-btn" id="copyWinBtn" onclick="App.copyCmd('cmdWinText')"><!-- FIXED: onclick --><i class="ti ti-copy"></i> Copy</button>
         <code id="cmdWinText"></code>
       </div>
     </div>
     <div class="sheet-footer">
-      <button class="btn" data-close="cmdOverlay">Dong</button>
-      <button class="btn btn-primary" id="directOpenBtn"><i class="ti ti-external-link"></i> Mo tab moi</button>
+      <button class="btn" data-close="cmdOverlay"><!-- FIXED: Vietnamese -->Đóng</button>
+      <button class="btn btn-primary" id="directOpenBtn" onclick="App.directOpenFromCmd()"><!-- FIXED: onclick + Vietnamese --><i class="ti ti-external-link"></i> Mở tab mới</button>
     </div>
   </div></div>
 </div>
@@ -189,15 +191,15 @@
   <div class="sheet-wrap"><div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <h2 style="color:var(--red)"><i class="ti ti-trash"></i> Xoa tai khoan</h2>
+      <h2 style="color:var(--red)"><i class="ti ti-trash"></i> <!-- FIXED: Vietnamese -->Xoá tài khoản</h2>
       <button class="btn btn-icon" data-close="deleteOverlay"><i class="ti ti-x"></i></button>
     </div>
     <div class="sheet-body">
-      <p style="font-size:14px;line-height:1.6;color:var(--text2);">Ban co chac muon xoa <strong id="deleteAccName"></strong>?<br>Hanh dong nay khong the hoan tac.</p>
+      <p style="font-size:14px;line-height:1.6;color:var(--text2);"><!-- FIXED: Vietnamese -->Bạn có chắc muốn xoá <strong id="deleteAccName"></strong>?<br>Hành động này không thể hoàn tác.</p>
     </div>
     <div class="sheet-footer">
-      <button class="btn" data-close="deleteOverlay">Huy</button>
-      <button class="btn btn-danger-solid" id="confirmDeleteBtn"><i class="ti ti-trash"></i> Xoa</button>
+      <button class="btn" data-close="deleteOverlay"><!-- FIXED: Vietnamese -->Huỷ</button>
+      <button class="btn btn-danger-solid" id="confirmDeleteBtn" onclick="App.doDelete()"><!-- FIXED: onclick + Vietnamese --><i class="ti ti-trash"></i> Xoá</button>
     </div>
   </div></div>
 </div>
@@ -208,17 +210,17 @@
   <div class="sheet-wrap"><div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <h2>Doi trang thai hang loat</h2>
+      <h2><!-- FIXED: Vietnamese -->Đổi trạng thái hàng loạt</h2>
       <button class="btn btn-icon" data-close="bulkStatusOverlay"><i class="ti ti-x"></i></button>
     </div>
     <div class="sheet-body">
-      <div class="fgroup"><label>Trang thai moi</label>
-        <select id="bulkStatusSel"><option value="active">Active</option><option value="limited">Rate Limited</option><option value="expired">Het han</option><option value="banned">Banned</option></select>
+      <div class="fgroup"><label><!-- FIXED: Vietnamese -->Trạng thái mới</label>
+        <select id="bulkStatusSel"><option value="active">Active</option><option value="limited">Rate Limited</option><option value="expired"><!-- FIXED: Vietnamese -->Hết hạn</option><option value="banned">Banned</option></select>
       </div>
     </div>
     <div class="sheet-footer">
-      <button class="btn" data-close="bulkStatusOverlay">Huy</button>
-      <button class="btn btn-primary" id="applyBulkStatusBtn"><i class="ti ti-check"></i> Ap dung</button>
+      <button class="btn" data-close="bulkStatusOverlay"><!-- FIXED: Vietnamese -->Huỷ</button>
+      <button class="btn btn-primary" id="applyBulkStatusBtn" onclick="App.applyBulkStatus()"><!-- FIXED: onclick + Vietnamese --><i class="ti ti-check"></i> Áp dụng</button>
     </div>
   </div></div>
 </div>
@@ -229,15 +231,15 @@
   <div class="sheet-wrap"><div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <h2>Gan tag hang loat</h2>
+      <h2><!-- FIXED: Vietnamese -->Gán tag hàng loạt</h2>
       <button class="btn btn-icon" data-close="bulkTagOverlay"><i class="ti ti-x"></i></button>
     </div>
     <div class="sheet-body">
-      <div class="fgroup"><label>Tag can them</label><input id="bulkTagInput" type="text" placeholder="Coding" /></div>
+      <div class="fgroup"><label><!-- FIXED: Vietnamese -->Tag cần thêm</label><input id="bulkTagInput" type="text" placeholder="Coding" /></div>
     </div>
     <div class="sheet-footer">
-      <button class="btn" data-close="bulkTagOverlay">Huy</button>
-      <button class="btn btn-primary" id="applyBulkTagBtn"><i class="ti ti-check"></i> Ap dung</button>
+      <button class="btn" data-close="bulkTagOverlay"><!-- FIXED: Vietnamese -->Huỷ</button>
+      <button class="btn btn-primary" id="applyBulkTagBtn" onclick="App.applyBulkTag()"><!-- FIXED: onclick + Vietnamese --><i class="ti ti-check"></i> Áp dụng</button>
     </div>
   </div></div>
 </div>
@@ -248,89 +250,69 @@
   <div class="sheet-wrap"><div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <h2>Cai dat</h2>
+      <h2><!-- FIXED: Vietnamese -->Cài đặt</h2>
       <button class="btn btn-icon" data-close="settingsOverlay"><i class="ti ti-x"></i></button>
     </div>
     <div class="sheet-body">
 
       <div class="settings-section">
-        <div class="settings-section-title"><i class="ti ti-palette"></i> Giao dien</div>
+        <div class="settings-section-title"><i class="ti ti-palette"></i> <!-- FIXED: Vietnamese -->Giao diện</div>
         <div class="pref-row">
-          <div><div>Chu de</div><div class="pref-sub">Light / Dark / System</div></div>
+          <div><div><!-- FIXED: Vietnamese -->Chủ đề</div><div class="pref-sub">Light / Dark / System</div></div>
           <div class="theme-radios">
             <label><input type="radio" name="themeRadio" value="light"> Sang</label>
             <label><input type="radio" name="themeRadio" value="dark"> Toi</label>
-            <label><input type="radio" name="themeRadio" value="system" checked> He thong</label>
+            <label><input type="radio" name="themeRadio" value="system" checked> <!-- FIXED: Vietnamese -->Hệ thống</label>
           </div>
         </div>
       </div>
 
       <div class="settings-section">
-        <div class="settings-section-title"><i class="ti ti-brand-github"></i> Dong bo GitHub Gist</div>
-        <div class="fgroup">
-          <label>Personal Access Token</label>
-          <div style="display:flex;gap:6px;">
-            <input id="sGistToken" type="password" placeholder="ghp_xxxxxxxxxxxx" style="flex:1;" />
-            <button class="btn btn-sm btn-icon" id="toggleTokenBtn" title="Hien/An"><i class="ti ti-eye" id="tokenEyeIcon"></i></button>
-          </div>
-          <div class="chrome-hint">GitHub - Settings - Developer settings - Personal access tokens - quyen <code>gist</code></div>
-        </div>
-        <div class="fgroup">
-          <label>Gist ID</label>
-          <input id="sGistId" type="text" placeholder="abc123def456..." />
-          <div class="chrome-hint">Tao Gist tai <code>gist.github.com</code> - lay ID tu URL</div>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
-          <button class="btn btn-sm btn-primary" id="testGistBtn" style="flex:1;justify-content:center;"><i class="ti ti-plug"></i> Kiem tra</button>
-          <button class="btn btn-sm" id="pushGistBtn" style="flex:1;justify-content:center;"><i class="ti ti-cloud-upload"></i> Push</button>
-          <button class="btn btn-sm" id="pullGistBtn" style="flex:1;justify-content:center;"><i class="ti ti-cloud-download"></i> Pull</button>
-        </div>
-        <div id="gistStatus" class="gist-status"></div>
-        <div id="lastSyncLabel" style="font-size:11px;color:var(--text3);margin-top:6px;"></div>
-      </div>
-
-      <div class="settings-section">
-        <div class="settings-section-title"><i class="ti ti-external-link"></i> Hanh vi khi mo chat</div>
+        <div class="settings-section-title"><i class="ti ti-external-link"></i> <!-- FIXED: Vietnamese -->Hành vi khi mở chat</div>
         <div class="pref-row">
-          <div><div>Luon hoi cach mo</div><div class="pref-sub">Hien bang chon moi lan nhan Mo Chat</div></div>
-          <button class="toggle" id="settingsAlwaysAsk"></button>
+          <div><div><!-- FIXED: Vietnamese -->Luôn hỏi cách mở</div><div class="pref-sub"><!-- FIXED: Vietnamese -->Hiện bảng chọn mỗi lần nhấn Mở Chat</div></div>
+          <button class="toggle" id="settingsAlwaysAsk" onclick="App.toggleSettingsAlwaysAsk()"><!-- FIXED: onclick --></button>
         </div>
         <div class="pref-row">
-          <div><div>Phuong thuc mac dinh</div><div class="pref-sub">Dung khi tat "luon hoi"</div></div>
-          <select class="filter-sel" id="defaultOpenMode" style="width:auto;">
-            <option value="direct">Tab moi</option>
+          <div><div><!-- FIXED: Vietnamese -->Phương thức mặc định</div><div class="pref-sub"><!-- FIXED: Vietnamese -->Dùng khi tắt 'luôn hỏi'</div></div>
+          <select class="filter-sel" id="defaultOpenMode" style="width:auto;" onchange="App.saveDefaultMode()"><!-- FIXED: onchange -->
+            <option value="direct"><!-- FIXED: Vietnamese -->Tab mới</option>
             <option value="browser">Browser + Profile</option>
           </select>
         </div>
       </div>
 
       <div class="settings-section">
-        <div class="settings-section-title"><i class="ti ti-browser"></i> Trinh duyet mac dinh</div>
-        <div class="fgroup"><label>Duong dan Linux / macOS</label><input id="sChromePath" type="text" placeholder="google-chrome" /></div>
-        <div class="fgroup"><label>Duong dan Windows</label><input id="sChromePathWin" type="text" placeholder='"C:\Program Files\Google\Chrome\Application\chrome.exe"' /></div>
+        <div class="settings-section-title"><i class="ti ti-browser"></i> <!-- FIXED: Vietnamese -->Trình duyệt mặc định</div>
+        <div class="fgroup"><label><!-- FIXED: Vietnamese -->Đường dẫn Linux / macOS</label><input id="sChromePath" type="text" placeholder="google-chrome" /></div>
+        <div class="fgroup"><label><!-- FIXED: Vietnamese -->Đường dẫn Windows</label><input id="sChromePathWin" type="text" placeholder='"C:\Program Files\Google\Chrome\Application\chrome.exe"' /></div>
       </div>
 
       <div class="settings-section">
-        <div class="settings-section-title"><i class="ti ti-database"></i> Du lieu</div>
+        <div class="settings-section-title"><i class="ti ti-database"></i> <!-- FIXED: Vietnamese -->Dữ liệu</div>
         <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <button class="btn btn-sm" id="exportBtn" style="flex:1;justify-content:center;"><i class="ti ti-download"></i> Export JSON</button>
-          <button class="btn btn-sm" id="importBtn" style="flex:1;justify-content:center;"><i class="ti ti-upload"></i> Import JSON</button>
+          <button class="btn btn-sm" id="exportBtn" style="flex:1;justify-content:center;" onclick="App.exportData()"><!-- FIXED: onclick --><i class="ti ti-download"></i> Export JSON</button>
+          <button class="btn btn-sm" id="importBtn" style="flex:1;justify-content:center;" onclick="App.importData()"><!-- FIXED: onclick --><i class="ti ti-upload"></i> Import JSON</button>
         </div>
-        <button class="btn btn-sm btn-danger" id="clearDataBtn" style="width:100%;justify-content:center;">
-          <i class="ti ti-trash"></i> Xoa toan bo du lieu
+        <button class="btn btn-sm btn-danger" id="clearDataBtn" style="width:100%;justify-content:center;" onclick="App.clearAllData()"><!-- FIXED: onclick -->
+          <i class="ti ti-trash"></i> <!-- FIXED: Vietnamese -->Xoá toàn bộ dữ liệu
         </button>
-        <div class="chrome-hint" style="margin-top:8px;">Du lieu luu trong IndexedDB. Token duoc ma hoa AES-256-GCM.</div>
+        <div class="chrome-hint" style="margin-top:8px;"><!-- FIXED: Vietnamese -->Dữ liệu lưu trong IndexedDB. Token được mã hoá AES-256-GCM.</div>
       </div>
 
     </div>
     <div class="sheet-footer">
-      <button class="btn" data-close="settingsOverlay">Dong</button>
-      <button class="btn btn-primary" id="saveSettingsBtn"><i class="ti ti-check"></i> Luu</button>
+      <button class="btn" data-close="settingsOverlay"><!-- FIXED: Vietnamese -->Đóng</button>
+      <button class="btn btn-primary" id="saveSettingsBtn" onclick="App.saveSettings()"><!-- FIXED: onclick + Vietnamese --><i class="ti ti-check"></i> Lưu</button>
     </div>
   </div></div>
 </div>
 
 <input type="file" id="importFile" accept=".json" style="display:none" />
+<!-- FIXED: onchange handler for import -->
+<script>
+  document.getElementById('importFile')?.setAttribute('onchange', 'App.handleImport(event)');
+</script>
 
 <script type="module" src="app.js"></script>
 </body>
